@@ -9,16 +9,19 @@ UPLOAD_FOLDER = '/tmp/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def convert_csv_to_ini(csv_file_path, ini_path):
-    # Wczytaj CSV z separatorem średnik i kodowaniem cp1250
+    # Wczytaj CSV ze średnikiem, kodowaniem cp1250
     df = pd.read_csv(csv_file_path, sep=';', encoding='cp1250')
-
-    # Zamiana przecinków na kropki w kolumnach liczbowych
+    
+    # Usuń całkowicie puste wiersze (wszystkie kolumny NaN)
+    df = df.dropna(how='all')
+    
+    # Zamień przecinki na kropki w kolumnach liczbowych i skonwertuj na float
     for col in ['Netto', 'VAT', 'Brutto']:
         df[col] = df[col].astype(str).str.replace(',', '.').astype(float)
-
-    # Konwersja daty na format yyyy-mm-dd
-    df['Data wyst.'] = pd.to_datetime(df['Data wyst.'], dayfirst=True).dt.strftime('%Y-%m-%d')
-
+    
+    # Zamień datę z formatu dd.mm.yyyy na yyyy-mm-dd
+    df['Data wyst.'] = pd.to_datetime(df['Data wyst.'], format='%d.%m.%Y').dt.strftime('%Y-%m-%d')
+    
     with open(ini_path, 'w', encoding='cp1250', newline='\r\n') as ini:
         for _, row in df.iterrows():
             ini.write(f"[{row['Numer dokumentu']}]\r\n")
@@ -27,9 +30,9 @@ def convert_csv_to_ini(csv_file_path, ini_path):
             ini.write(f"DATA={row['Data wyst.']}\r\n")
             ini.write(f"KONTRAHENT={row['Kontrahent']}\r\n")
             ini.write(f"NIP={row['NIP']}\r\n")
-            ini.write(f"NETTO={row['Netto']}\r\n")
-            ini.write(f"VAT={row['VAT']}\r\n")
-            ini.write(f"BRUTTO={row['Brutto']}\r\n\r\n")
+            ini.write(f"NETTO={row['Netto']:.2f}\r\n")
+            ini.write(f"VAT={row['VAT']:.2f}\r\n")
+            ini.write(f"BRUTTO={row['Brutto']:.2f}\r\n\r\n")
 
 @app.route('/')
 def index():
