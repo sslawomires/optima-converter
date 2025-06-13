@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Plik przetworzony - Optima</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f7f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #2c2c2c;
+      padding: 40px 60px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #ffffff;
+    }
+    .success-message {
+      color: #4caf50;
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+    .download-text {
+      color: #ffffff;
+      font-size: 16px;
+      margin: 20px 0;
+    }
+    .download-link {
+      color: #f57c00;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .download-link:hover {
+      color: #e65100;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #aaa;
+      text-decoration: none;
+    }
+    .back-link:hover {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Plik został przetworzony!</h2>
+    <div class="success-message">
+      ✅ Przetwarzanie zakończone pomyślnie
+    </div>
+    <div class="download-text">
+      Pobierz przetworzony <a href="{{ url_for('download', filename=filename) }}" class="download-link">plik</a>
+    </div>
+    <br>
+    <a href="{{ url_for('index') }}" class="back-link">← Powrót do strony głównej</a>
+  </div>
+</body>
+</html>
