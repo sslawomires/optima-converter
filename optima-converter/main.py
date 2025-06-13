@@ -10,7 +10,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def convert_csv_to_ini(csv_file_path, ini_path):
     # Wczytaj CSV ze średnikiem, kodowaniem cp1250
-    df = pd.read_csv(csv_file_path, sep=';', encoding='cp1250')
+    df = pd.read_csv(csv_file_path, sep=';', encoding='utf-8')
     
     # Usuń całkowicie puste wiersze (wszystkie kolumny NaN)
     df = df.dropna(how='all')
