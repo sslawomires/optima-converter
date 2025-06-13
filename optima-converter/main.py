@@ -9,27 +9,34 @@ UPLOAD_FOLDER = '/tmp/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def convert_csv_to_ini(csv_file_path, ini_path):
-    df = pd.read_csv(csv_file_path, sep=';', encoding='utf-8')
-    df = df.dropna(how='all')
+    try:
+        # Wczytaj CSV z separatorem średnika
+        df = pd.read_csv(csv_file_path, sep=';', encoding='utf-8')
 
-    # Zamień przecinki na kropki i konwertuj liczby
-    for col in ['Netto', 'VAT', 'Brutto']:
-        df[col] = df[col].astype(str).str.replace(',', '.', regex=False).astype(float)
+        # Usuń puste wiersze
+        df = df.dropna(how='all')
 
-    # Zamień datę z formatu dd.mm.yyyy na yyyy-mm-dd
-    df['Data wyst.'] = pd.to_datetime(df['Data wyst.'], format='%d.%m.%Y').dt.strftime('%Y-%m-%d')
+        # Konwersja liczbowych kolumn (przecinek na kropkę)
+        for col in ['Netto', 'VAT', 'Brutto']:
+            df[col] = df[col].astype(str).str.replace(',', '.', regex=False).astype(float)
 
-    with open(ini_path, 'w', encoding='cp1250', newline='\r\n') as ini:
-        for _, row in df.iterrows():
-            ini.write(f"[{row['Numer dokumentu']}]\r\n")
-            ini.write("TYP=Dokument księgowy\r\n")
-            ini.write(f"NUMER={row['Numer dokumentu']}\r\n")
-            ini.write(f"DATA={row['Data wyst.']}\r\n")
-            ini.write(f"KONTRAHENT={row['Kontrahent']}\r\n")
-            ini.write(f"NIP={row['NIP']}\r\n")
-            ini.write(f"NETTO={row['Netto']:.2f}\r\n")
-            ini.write(f"VAT={row['VAT']:.2f}\r\n")
-            ini.write(f"BRUTTO={row['Brutto']:.2f}\r\n\r\n")
+        # Konwersja daty
+        df['Data wyst.'] = pd.to_datetime(df['Data wyst.'], format='%d.%m.%Y').dt.strftime('%Y-%m-%d')
+
+        # Zapis do pliku INI
+        with open(ini_path, 'w', encoding='cp1250', newline='\r\n') as ini:
+            for _, row in df.iterrows():
+                ini.write(f"[{row['Numer dokumentu']}]\r\n")
+                ini.write("TYP=Dokument księgowy\r\n")
+                ini.write(f"NUMER={row['Numer dokumentu']}\r\n")
+                ini.write(f"DATA={row['Data wyst.']}\r\n")
+                ini.write(f"KONTRAHENT={row['Kontrahent']}\r\n")
+                ini.write(f"NIP={row['NIP']}\r\n")
+                ini.write(f"NETTO={row['Netto']:.2f}\r\n")
+                ini.write(f"VAT={row['VAT']:.2f}\r\n")
+                ini.write(f"BRUTTO={row['Brutto']:.2f}\r\n\r\n")
+    except Exception as e:
+        raise Exception(f"Błąd podczas konwersji CSV: {e}")
 
 @app.route('/')
 def index():
@@ -57,7 +64,7 @@ def upload():
 
         return redirect(url_for('success', filename=ini_filename))
     except Exception as e:
-        flash(f"Błąd konwersji: {str(e)}", "error")
+        flash(str(e), "error")
         return redirect(url_for('index'))
 
 @app.route('/success/<filename>')
