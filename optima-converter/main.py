@@ -8,15 +8,23 @@ app.secret_key = 'tajny_klucz'
 UPLOAD_FOLDER = '/tmp/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def convert_xlsx_to_ini(xlsx_file_path, ini_path):
-    df = pd.read_excel(xlsx_file_path)
+def convert_csv_to_ini(csv_file_path, ini_path):
+    # Wczytaj CSV z separatorem średnik i kodowaniem cp1250
+    df = pd.read_csv(csv_file_path, sep=';', encoding='cp1250')
+
+    # Zamiana przecinków na kropki w kolumnach liczbowych
+    for col in ['Netto', 'VAT', 'Brutto']:
+        df[col] = df[col].astype(str).str.replace(',', '.').astype(float)
+
+    # Konwersja daty na format yyyy-mm-dd
+    df['Data wyst.'] = pd.to_datetime(df['Data wyst.'], dayfirst=True).dt.strftime('%Y-%m-%d')
 
     with open(ini_path, 'w', encoding='cp1250', newline='\r\n') as ini:
         for _, row in df.iterrows():
-            ini.write(f"[{row['Numer FV']}]\r\n")
+            ini.write(f"[{row['Numer dokumentu']}]\r\n")
             ini.write("TYP=Dokument księgowy\r\n")
-            ini.write(f"NUMER={row['Numer FV']}\r\n")
-            ini.write(f"DATA={row['Data']}\r\n")
+            ini.write(f"NUMER={row['Numer dokumentu']}\r\n")
+            ini.write(f"DATA={row['Data wyst.']}\r\n")
             ini.write(f"KONTRAHENT={row['Kontrahent']}\r\n")
             ini.write(f"NIP={row['NIP']}\r\n")
             ini.write(f"NETTO={row['Netto']}\r\n")
@@ -45,7 +53,7 @@ def upload():
         ini_filename = os.path.splitext(file.filename)[0] + '.ini'
         ini_path = os.path.join(UPLOAD_FOLDER, ini_filename)
 
-        convert_xlsx_to_ini(filepath, ini_path)
+        convert_csv_to_ini(filepath, ini_path)
 
         return redirect(url_for('success', filename=ini_filename))
     except Exception as e:
