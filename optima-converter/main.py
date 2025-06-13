@@ -16,11 +16,11 @@ def convert_csv_to_ini(csv_file_path, ini_path):
     df = df.dropna(how='all')
     
     # Zamień przecinki na kropki w kolumnach liczbowych i skonwertuj na float
-    for col in ['Netto', 'VAT', 'Brutto']:
-        df[col] = df[col].astype(str).str.replace(',', '.').astype(float)
+    #for col in ['Netto', 'VAT', 'Brutto']:
+        #df[col] = df[col].astype(str).str.replace(',', '.').astype(float)
     
     # Zamień datę z formatu dd.mm.yyyy na yyyy-mm-dd
-    df['Data wyst.'] = pd.to_datetime(df['Data wyst.'], format='%d.%m.%Y').dt.strftime('%Y-%m-%d')
+    #df['Data wyst.'] = pd.to_datetime(df['Data wyst.'], format='%d.%m.%Y').dt.strftime('%Y-%m-%d')
     
     with open(ini_path, 'w', encoding='cp1250', newline='\r\n') as ini:
         for _, row in df.iterrows():
