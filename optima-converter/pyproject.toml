@@ -7,4 +7,5 @@ requires-python = ">=3.11"
 dependencies = [
     "flask>=3.1.1",
     "replit-object-storage>=1.0.2",
+    "waitress>=2.1.2"
 ]
