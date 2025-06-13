@@ -15,21 +15,20 @@ def convert_csv_to_ini(csv_file_path, ini_path):
             head = f.read(100)
             print(f"[DEBUG] Pierwsze bajty pliku: {head}")
 
-        # Wczytaj CSV ze średnikiem, kodowaniem CP1250
+        # Wczytaj CSV ze średnikiem, kodowaniem cp1250 (Windows-1250)
         df = pd.read_csv(csv_file_path, sep=';', encoding='cp1250')
         print(f"[INFO] Wczytano dane: {len(df)} wierszy")
 
-        # Usuń całkowicie puste wiersze
-        df = df.dropna(how='all')
+        df = df.dropna(how='all')  # Usuń puste wiersze
 
-        # Zamień przecinki na kropki i konwertuj kolumny liczby
+        # Konwersja liczb
         for col in ['Netto', 'VAT', 'Brutto']:
             df[col] = df[col].astype(str).str.replace(',', '.', regex=False).astype(float)
 
-        # Przekształć datę z dd.mm.yyyy na yyyy-mm-dd
+        # Przekształcenie daty
         df['Data wyst.'] = pd.to_datetime(df['Data wyst.'], format='%d.%m.%Y').dt.strftime('%Y-%m-%d')
 
-        print(f"[INFO] Przetwarzanie do formatu INI...")
+        print(f"[INFO] Generowanie pliku INI...")
 
         with open(ini_path, 'w', encoding='cp1250', newline='\r\n') as ini:
             for _, row in df.iterrows():
@@ -55,22 +54,15 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    if 'file' not in request.files:
+    if 'file' not in request.files or request.files['file'].filename == '':
         flash("Nie załączono pliku", "error")
         return redirect(url_for('index'))
 
-    file = request.files['file']
-    if file.filename == '':
-        flash("Nie wybrano pliku", "error")
-        return redirect(url_for('index'))
-
     try:
+        file = request.files['file']
         filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-
-        # Zapis pliku binarnie (to naprawia problem kodowania)
-        with open(filepath, 'wb') as f:
-            f.write(file.read())
-        print(f"[INFO] Zapisano plik binarnie: {filepath}")
+        file.save(filepath)
+        print(f"[INFO] Zapisano plik: {filepath}")
 
         ini_filename = os.path.splitext(file.filename)[0] + '.ini'
         ini_path = os.path.join(UPLOAD_FOLDER, ini_filename)
@@ -80,7 +72,6 @@ def upload():
         return redirect(url_for('success', filename=ini_filename))
     except Exception as e:
         flash(f"Błąd konwersji: {str(e)}", "error")
-        print(f"[ERROR] Wyjątek podczas uploadu: {e}")
         return redirect(url_for('index'))
 
 @app.route('/success/<filename>')
@@ -98,5 +89,7 @@ def download(filename):
 
 if __name__ == '__main__':
     from waitress import serve
-    port = int(os.environ.get("PORT", 5000))
+    import os
+    port = int(os.environ.get("PORT", 10000))  # Render ustawia zmienną PORT
+    print(f"[INFO] Start aplikacji na porcie {port}")
     serve(app, host='0.0.0.0', port=port)
