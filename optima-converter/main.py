@@ -9,19 +9,16 @@ UPLOAD_FOLDER = '/tmp/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def convert_csv_to_ini(csv_file_path, ini_path):
-    # Wczytaj CSV ze średnikiem, kodowaniem cp1250
     df = pd.read_csv(csv_file_path, sep=';', encoding='utf-8')
-    
-    # Usuń całkowicie puste wiersze (wszystkie kolumny NaN)
     df = df.dropna(how='all')
-    
-    # Zamień przecinki na kropki w kolumnach liczbowych i skonwertuj na float
-    #for col in ['Netto', 'VAT', 'Brutto']:
-        #df[col] = df[col].astype(str).str.replace(',', '.').astype(float)
-    
+
+    # Zamień przecinki na kropki i konwertuj liczby
+    for col in ['Netto', 'VAT', 'Brutto']:
+        df[col] = df[col].astype(str).str.replace(',', '.', regex=False).astype(float)
+
     # Zamień datę z formatu dd.mm.yyyy na yyyy-mm-dd
-    #df['Data wyst.'] = pd.to_datetime(df['Data wyst.'], format='%d.%m.%Y').dt.strftime('%Y-%m-%d')
-    
+    df['Data wyst.'] = pd.to_datetime(df['Data wyst.'], format='%d.%m.%Y').dt.strftime('%Y-%m-%d')
+
     with open(ini_path, 'w', encoding='cp1250', newline='\r\n') as ini:
         for _, row in df.iterrows():
             ini.write(f"[{row['Numer dokumentu']}]\r\n")
