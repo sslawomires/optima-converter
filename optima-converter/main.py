@@ -1,32 +1,27 @@
 from flask import Flask, request, send_file, render_template, redirect, url_for, flash
-import xml.etree.ElementTree as ET
-import io
+import pandas as pd
 import os
 
 app = Flask(__name__)
-app.secret_key = 'zmien_tajny_klucz_na_inny'
+app.secret_key = 'tajny_klucz'
 
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def convert_optima_xml_to_ini(xml_content, ini_path):
-    root = ET.fromstring(xml_content)
+def convert_xlsx_to_ini(xlsx_file_path, ini_path):
+    df = pd.read_excel(xlsx_file_path)
 
     with open(ini_path, 'w', encoding='cp1250', newline='\r\n') as ini:
-        for faktura in root.findall('.//Faktura'):
-            nr = faktura.findtext('Numer') or 'BRAK_NUMERU'
-            data = faktura.findtext('DataWystawienia') or ''
-            kontr = faktura.findtext('Kontrahent/Nazwa') or 'BRAK_KONTRAHENTA'
-            net = faktura.findtext('Podsumowanie/Netto') or '0'
-            vat = faktura.findtext('Podsumowanie/Vat') or '0'
-
-            ini.write(f'[{nr}]\r\n')
-            ini.write('TYP=Dokument księgowy\r\n')
-            ini.write(f'NUMER DOKUMENTU={nr}\r\n')
-            ini.write(f'DATA={data}\r\n')
-            ini.write(f'KONTRAHENT={kontr}\r\n')
-            ini.write(f'NETTO-23={net}\r\n')
-            ini.write(f'VAT-23={vat}\r\n\r\n')
+        for _, row in df.iterrows():
+            ini.write(f"[{row['Numer FV']}]\r\n")
+            ini.write("TYP=Dokument księgowy\r\n")
+            ini.write(f"NUMER={row['Numer FV']}\r\n")
+            ini.write(f"DATA={row['Data']}\r\n")
+            ini.write(f"KONTRAHENT={row['Kontrahent']}\r\n")
+            ini.write(f"NIP={row['NIP']}\r\n")
+            ini.write(f"NETTO={row['Netto']}\r\n")
+            ini.write(f"VAT={row['VAT']}\r\n")
+            ini.write(f"BRUTTO={row['Brutto']}\r\n\r\n")
 
 @app.route('/')
 def index():
@@ -44,11 +39,13 @@ def upload():
         return redirect(url_for('index'))
 
     try:
-        xml_bytes = file.read()
+        filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+        file.save(filepath)
+
         ini_filename = os.path.splitext(file.filename)[0] + '.ini'
         ini_path = os.path.join(UPLOAD_FOLDER, ini_filename)
 
-        convert_optima_xml_to_ini(xml_bytes, ini_path)
+        convert_xlsx_to_ini(filepath, ini_path)
 
         return redirect(url_for('success', filename=ini_filename))
     except Exception as e:
@@ -69,4 +66,4 @@ def download(filename):
     return send_file(file_path, as_attachment=True)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    app.run(debug=True)
