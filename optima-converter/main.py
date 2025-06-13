@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 app.secret_key = 'tajny_klucz'
 
-UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER = '/tmp/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def convert_xlsx_to_ini(xlsx_file_path, ini_path):
