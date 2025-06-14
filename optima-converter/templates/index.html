@@ -27,6 +27,15 @@
       margin-bottom: 20px;
       color: #ffffff;
     }
+    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul class="flashes" style="list-style-type: none; padding: 0; margin-top: 15px;">
+      {% for category, message in messages %}
+        <li style="background-color: {% if category == 'error' %}#f44336{% else %}#4CAF50{% endif %}; color: white; padding: 10px; margin-bottom: 10px; border-radius: 5px;">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
     input[type="file"] {
       padding: 10px;
       border: 2px dashed #aaa;
