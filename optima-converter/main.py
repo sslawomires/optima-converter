@@ -76,8 +76,9 @@ def upload():
 
         return redirect(url_for('success', filename=ini_filename))
     except Exception as e:
-        flash(f"Błąd konwersji: {str(e)}", "error")
-        return redirect(url_for('index'))
+    print(f"[ERROR] Wyjątek podczas przetwarzania: {str(e)}")
+    flash(f"Błąd konwersji: {str(e)}", "error")
+    return redirect(url_for('index'))
 
 @app.route('/success/<filename>')
 def success(filename):
