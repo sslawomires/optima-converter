@@ -1,12 +1,18 @@
 from flask import Flask, request, send_file, render_template, redirect, url_for, flash
 import pandas as pd
 import os
+from werkzeug.utils import secure_filename
+import traceback
 
 app = Flask(__name__)
 app.secret_key = 'tajny_klucz'
 
 UPLOAD_FOLDER = '/tmp'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+ALLOWED_EXTENSIONS = {'csv', 'txt'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def convert_csv_to_ini(csv_file_path, ini_path):
     try:
@@ -42,6 +48,7 @@ def convert_csv_to_ini(csv_file_path, ini_path):
 
     except Exception as e:
         print(f"[ERROR] Błąd konwersji: {e}")
+        traceback.print_exc()
         raise
 
 @app.route('/')
@@ -64,12 +71,17 @@ def upload():
         flash("Nie wybrano pliku", "error")
         return redirect(url_for('index'))
 
+    if not allowed_file(file.filename):
+        flash("Nieobsługiwany typ pliku. Proszę wybrać plik CSV.", "error")
+        return redirect(url_for('index'))
+
     try:
-        filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
         print(f"[INFO] Zapisano plik: {filepath}")
 
-        ini_filename = os.path.splitext(file.filename)[0] + '.ini'
+        ini_filename = os.path.splitext(filename)[0] + '.ini'
         ini_path = os.path.join(UPLOAD_FOLDER, ini_filename)
 
         convert_csv_to_ini(filepath, ini_path)
@@ -77,6 +89,7 @@ def upload():
         return redirect(url_for('success', filename=ini_filename))
     except Exception as e:
         print(f"[ERROR] Wyjątek podczas przetwarzania: {str(e)}")
+        traceback.print_exc()
         flash(f"Błąd konwersji: {str(e)}", "error")
         return redirect(url_for('index'))
 
