@@ -28,7 +28,9 @@ def convert_csv_to_ini(csv_file_path, ini_path):
         df = df.dropna(how='all')
 
         for col in ['Netto', 'VAT', 'Brutto']:
-            df[col] = df[col].astype(str).str.replace(',', '.', regex=False).astype(float)
+            df[col] = df[col].astype(str).str.replace(' ', '', regex=False)
+            df[col] = df[col].str.replace(',', '.', regex=False)
+            df[col] = df[col].astype(float)
 
         df['Data wyst.'] = pd.to_datetime(df['Data wyst.'], format='%d.%m.%Y').dt.strftime('%Y-%m-%d')
 
