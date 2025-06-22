@@ -55,12 +55,17 @@ def convert_csv_to_ini(csv_file_path, ini_path):
 
         with open(ini_path, 'w', encoding='cp1250', newline='\r\n') as ini:
             for idx, row in df.iterrows():
+                # Pomijamy podsumowania lub niepoprawne wiersze
+                if not (isinstance(row['Numer dokumentu'], str) and row['Numer dokumentu'].startswith('FAE/')):
+                    print(f"[INFO] Pomijam wiersz: {row['Numer dokumentu']}")
+                    continue
+
                 ini.write(f"[{row['Numer dokumentu']}]\r\n")
                 ini.write("TYP=Dokument księgowy\r\n")
-                ini.write("KONTRAHENT=Odbiorca\r\n")  # na sztywno
+                ini.write("KONTRAHENT=Odbiorca\r\n")
                 ini.write(f"NUMER DOKUMENTU={row['Numer dokumentu']}\r\n")
                 ini.write(f"DATA={row['Data wyst.']}\r\n")
-                ini.write("OPIS=Sprzedaż towarów\r\n")  # na sztywno
+                ini.write("OPIS=Sprzedaż towarów\r\n")
                 ini.write("REJESTR=1\r\n")
                 ini.write("KOLUMNA=7\r\n")
                 ini.write(f"NETTO-23={row['Netto']:.2f}\r\n")
