@@ -24,8 +24,8 @@ def convert_csv_to_ini(csv_file_path, ini_path):
 
         df = pd.read_csv(csv_file_path, sep=';', encoding='cp1250')
 
-        # Stripping whitespace from column headers (fix)
-        df.columns = df.columns.str.strip()
+        # Czyszczenie nazw kolumn z ewentualnych ukrytych znaków i spacji
+        df.columns = df.columns.str.strip().str.replace('\ufeff', '')
         print(f"[INFO] Kolumny: {df.columns.tolist()}")
         print(f"[INFO] Wczytano dane: {len(df)} wierszy")
 
