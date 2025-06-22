@@ -24,16 +24,16 @@ def convert_csv_to_ini(csv_file_path, ini_path):
 
         df = pd.read_csv(csv_file_path, sep=';', encoding='cp1250')
 
-        # Czyszczenie nazw kolumn z ewentualnych ukrytych znaków i spacji
+        # Czyszczenie nazw kolumn
         df.columns = df.columns.str.strip().str.replace('\ufeff', '')
         print(f"[INFO] Kolumny: {df.columns.tolist()}")
         print(f"[INFO] Wczytano dane: {len(df)} wierszy")
 
         df = df.dropna(how='all')
 
-        # Usuwamy niepotrzebną kolumnę jeśli istnieje
-        if 'numer listu przewozowego' in df.columns:
-            df.drop(columns=['numer listu przewozowego'], inplace=True)
+        # Usuwamy niepotrzebną kolumnę
+        if 'Nr listu przewozowego' in df.columns:
+            df.drop(columns=['Nr listu przewozowego'], inplace=True)
 
         # Czyszczenie kolumn kwotowych
         for col in ['Netto', 'VAT', 'Brutto']:
@@ -42,7 +42,7 @@ def convert_csv_to_ini(csv_file_path, ini_path):
                 df[col] = df[col].str.replace(',', '.', regex=False)
                 df[col] = df[col].astype(float)
 
-        # Konwersja daty wystawienia na format DD/MM/RRRR
+        # Konwersja daty na DD/MM/RRRR
         df['Data wyst.'] = pd.to_datetime(df['Data wyst.'], format='%d.%m.%Y').dt.strftime('%d/%m/%Y')
 
         # Stałe dane kontrahenta
@@ -55,32 +55,25 @@ def convert_csv_to_ini(csv_file_path, ini_path):
 
         with open(ini_path, 'w', encoding='cp1250', newline='\r\n') as ini:
             for idx, row in df.iterrows():
-                # Nazwa sekcji
                 ini.write(f"[{row['Numer dokumentu']}]\r\n")
-
-                # Wymagane pola
                 ini.write("TYP=Dokument księgowy\r\n")
-                ini.write(f"KONTRAHENT={row['Kontrahent']}\r\n")
+                ini.write("KONTRAHENT=Odbiorca\r\n")  # na sztywno
                 ini.write(f"NUMER DOKUMENTU={row['Numer dokumentu']}\r\n")
                 ini.write(f"DATA={row['Data wyst.']}\r\n")
-                ini.write(f"OPIS={row['Opis']}\r\n")
+                ini.write("OPIS=Sprzedaż towarów\r\n")  # na sztywno
                 ini.write("REJESTR=1\r\n")
                 ini.write("KOLUMNA=7\r\n")
-
-                # Kwoty
                 ini.write(f"NETTO-23={row['Netto']:.2f}\r\n")
                 ini.write(f"VAT-23={row['VAT']:.2f}\r\n")
                 ini.write(f"KWOTA={(row['Netto'] + row['VAT']):.2f}\r\n")
-
-                # Dane kontrahenta
                 ini.write(f"KONTRAHENT-NAZWA PELNA={kontrahent_nazwa}\r\n")
                 ini.write(f"KONTRAHENT-ULICA={kontrahent_ulica}\r\n")
                 ini.write(f"KONTRAHENT-MIEJSCOWOSC={kontrahent_miejscowosc}\r\n")
                 ini.write(f"KONTRAHENT-KOD POCZTOWY={kontrahent_kod_pocztowy}\r\n")
                 ini.write(f"KONTRAHENT-KRAJ={kontrahent_kraj}\r\n")
                 ini.write(f"KONTRAHENT-NIP={kontrahent_nip}\r\n")
-
-                ini.write("\r\n")  # pusta linia między dokumentami
+                ini.write(f"DATA SPRZEDAŻY={row['Data wyst.']}\r\n")
+                ini.write("\r\n")
 
         print(f"[INFO] Zapisano plik INI: {ini_path}")
 
