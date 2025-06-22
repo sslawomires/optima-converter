@@ -23,6 +23,10 @@ def convert_csv_to_ini(csv_file_path, ini_path):
             print(f"[DEBUG] Pierwsze bajty pliku: {head}")
 
         df = pd.read_csv(csv_file_path, sep=';', encoding='cp1250')
+
+        # Stripping whitespace from column headers (fix)
+        df.columns = df.columns.str.strip()
+        print(f"[INFO] Kolumny: {df.columns.tolist()}")
         print(f"[INFO] Wczytano dane: {len(df)} wierszy")
 
         df = df.dropna(how='all')
