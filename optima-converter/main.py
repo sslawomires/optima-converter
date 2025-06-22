@@ -27,24 +27,56 @@ def convert_csv_to_ini(csv_file_path, ini_path):
 
         df = df.dropna(how='all')
 
-        for col in ['Netto', 'VAT', 'Brutto']:
-            df[col] = df[col].astype(str).str.replace(' ', '', regex=False)
-            df[col] = df[col].str.replace(',', '.', regex=False)
-            df[col] = df[col].astype(float)
+        # Usuwamy niepotrzebną kolumnę jeśli istnieje
+        if 'numer listu przewozowego' in df.columns:
+            df.drop(columns=['numer listu przewozowego'], inplace=True)
 
-        df['Data wyst.'] = pd.to_datetime(df['Data wyst.'], format='%d.%m.%Y').dt.strftime('%Y-%m-%d')
+        # Czyszczenie kolumn kwotowych
+        for col in ['Netto', 'VAT', 'Brutto']:
+            if col in df.columns:
+                df[col] = df[col].astype(str).str.replace(' ', '', regex=False)
+                df[col] = df[col].str.replace(',', '.', regex=False)
+                df[col] = df[col].astype(float)
+
+        # Konwersja daty wystawienia na format DD/MM/RRRR
+        df['Data wyst.'] = pd.to_datetime(df['Data wyst.'], format='%d.%m.%Y').dt.strftime('%d/%m/%Y')
+
+        # Stałe dane kontrahenta
+        kontrahent_nazwa = "Firma Kastor Wacław Wiecha"
+        kontrahent_ulica = "al.Solidarności 10"
+        kontrahent_miejscowosc = "Brzesko"
+        kontrahent_kod_pocztowy = "32-800"
+        kontrahent_kraj = "PL"
+        kontrahent_nip = "6791015997"
 
         with open(ini_path, 'w', encoding='cp1250', newline='\r\n') as ini:
-            for _, row in df.iterrows():
+            for idx, row in df.iterrows():
+                # Nazwa sekcji
                 ini.write(f"[{row['Numer dokumentu']}]\r\n")
+
+                # Wymagane pola
                 ini.write("TYP=Dokument księgowy\r\n")
-                ini.write(f"NUMER={row['Numer dokumentu']}\r\n")
-                ini.write(f"DATA={row['Data wyst.']}\r\n")
                 ini.write(f"KONTRAHENT={row['Kontrahent']}\r\n")
-                ini.write(f"NIP={row['NIP']}\r\n")
-                ini.write(f"NETTO={row['Netto']:.2f}\r\n")
-                ini.write(f"VAT={row['VAT']:.2f}\r\n")
-                ini.write(f"BRUTTO={row['Brutto']:.2f}\r\n\r\n")
+                ini.write(f"NUMER DOKUMENTU={row['Numer dokumentu']}\r\n")
+                ini.write(f"DATA={row['Data wyst.']}\r\n")
+                ini.write(f"OPIS={row['Opis']}\r\n")
+                ini.write("REJESTR=1\r\n")
+                ini.write("KOLUMNA=7\r\n")
+
+                # Kwoty
+                ini.write(f"NETTO-23={row['Netto']:.2f}\r\n")
+                ini.write(f"VAT-23={row['VAT']:.2f}\r\n")
+                ini.write(f"KWOTA={(row['Netto'] + row['VAT']):.2f}\r\n")
+
+                # Dane kontrahenta
+                ini.write(f"KONTRAHENT-NAZWA PELNA={kontrahent_nazwa}\r\n")
+                ini.write(f"KONTRAHENT-ULICA={kontrahent_ulica}\r\n")
+                ini.write(f"KONTRAHENT-MIEJSCOWOSC={kontrahent_miejscowosc}\r\n")
+                ini.write(f"KONTRAHENT-KOD POCZTOWY={kontrahent_kod_pocztowy}\r\n")
+                ini.write(f"KONTRAHENT-KRAJ={kontrahent_kraj}\r\n")
+                ini.write(f"KONTRAHENT-NIP={kontrahent_nip}\r\n")
+
+                ini.write("\r\n")  # pusta linia między dokumentami
 
         print(f"[INFO] Zapisano plik INI: {ini_path}")
 
