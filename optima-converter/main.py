@@ -65,9 +65,9 @@ def convert_csv_to_ini(csv_file_path, ini_path):
                 ini.write("KONTRAHENT=Odbiorca\r\n")
                 ini.write(f"NUMER DOKUMENTU={row['Numer dokumentu']}\r\n")
                 ini.write(f"DATA={row['Data wyst.']}\r\n")
-                ini.write("OPIS=Sprzedaż towarów\r\n")
-                ini.write("REJESTR=1\r\n")
-                ini.write("KOLUMNA=7\r\n")
+                ini.write("OPIS=Zakup towarów handlowych\r\n")  # poprawiony opis
+                ini.write("REJESTR=5\r\n")  # rejestr zakupów
+                ini.write("KOLUMNA=10\r\n")  # kolumna zakupu towarów
                 ini.write(f"NETTO-23={row['Netto']:.2f}\r\n")
                 ini.write(f"VAT-23={row['VAT']:.2f}\r\n")
                 ini.write(f"KWOTA={(row['Netto'] + row['VAT']):.2f}\r\n")
